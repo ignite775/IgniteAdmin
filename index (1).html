@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IGNITE FLEX · Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0a2f20;
+            --primary-light: #1a5c42;
+            --accent: #2a9d5e;
+            --accent-hover: #1f864b;
+            --accent-light: #e8f5ed;
+            --accent-gradient: linear-gradient(135deg, #2a9d5e, #1a7a48);
+            --danger: #c0392b;
+            --danger-hover: #a93226;
+            --warning: #e6b422;
+            --warning-hover: #d4a020;
+            --info: #2d7fb9;
+            --info-hover: #1f6a9e;
+            --bg: #f0f6f2;
+            --card-bg: #ffffff;
+            --border: #dce8de;
+            --text: #0a2f20;
+            --text-light: #3d5f4a;
+            --text-muted: #6a8a75;
+            --shadow: 0 4px 20px rgba(10, 47, 32, 0.06);
+            --shadow-hover: 0 8px 40px rgba(10, 47, 32, 0.12);
+            --shadow-lg: 0 20px 60px rgba(10, 47, 32, 0.15);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'El Messiri', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 16px 40px;
+            line-height: 1.5;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1280px;
+        }
+
+        /* ----- HEADER ----- */
+        .header {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 20px 32px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .header:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+            background-size: 200% 100%;
+            animation: gradientMove 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientMove {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .admin-logo img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-light);
+            transition: var(--transition);
+        }
+
+        .admin-logo img:hover {
+            transform: scale(1.05) rotate(-5deg);
+        }
+
+        .admin-logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .admin-logo h1 span {
+            color: var(--accent);
+            position: relative;
+        }
+
+        .admin-logo h1 span::after {
+            content: '●';
+            font-size: 0.4rem;
+            color: var(--accent);
+            position: absolute;
+            top: -8px;
+            right: -14px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .admin-badge {
+            background: var(--accent-light);
+            padding: 8px 20px;
+            border-radius: 60px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(42, 157, 94, 0.2);
+        }
+
+        .admin-badge i {
+            font-size: 0.9rem;
+        }
+
+        .header-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--bg);
+            border-radius: 60px;
+        }
+
+        /* ----- STATS OVERVIEW ----- */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-mini {
+            background: var(--card-bg);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-mini::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            transform: scaleX(0);
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover::after {
+            transform: scaleX(1);
+        }
+
+        .stat-mini:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-mini .icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: var(--accent);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .stat-mini:hover .icon-circle {
+            background: var(--accent);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .stat-mini .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .stat-mini .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ----- TOOLBAR ----- */
+        .toolbar {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: var(--transition);
+        }
+
+        .toolbar:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            flex: 1;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 60px;
+            padding: 8px 18px;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(42, 157, 94, 0.1);
+            background: white;
+        }
+
+        .search-box i {
+            color: var(--text-muted);
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 6px 0;
+            font-family: 'El Messiri', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            width: 160px;
+            color: var(--text);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .toolbar-btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'El Messiri', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .toolbar-btn.primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+        .toolbar-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(42, 157, 94, 0.35);
+        }
+
+        .toolbar-btn.danger {
+            background: var(--danger);
+            color: white;
+        }
+        .toolbar-btn.danger:hover {
+            background: var(--danger-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(192, 57, 43, 0.35);
+        }
+
+        .toolbar-btn.warning {
+            background: var(--warning);
+            color: white;
+        }
+        .toolbar-btn.warning:hover {
+            background: var(--warning-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(230, 180, 34, 0.35);
+        }
+
+        .toolbar-btn.info {
+            background: var(--info);
+            color: white;
+        }
+        .toolbar-btn.info:hover {
+            background: var(--info-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(45, 127, 185, 0.35);
+        }
+
+        .toolbar-btn.half-global {
+            background: #6c3483;
+            color: white;
+        }
+        .toolbar-btn.half-global:hover {
+            background: #4a235a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 52, 131, 0.35);
+        }
+
+        /* ----- USER TABLE ----- */
+        .user-table-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .user-table-container:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            padding: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1000px;
+        }
+
+        thead {
+            background: var(--bg);
+        }
+
+        th {
+            padding: 16px 18px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-light);
+            border-bottom: 2px solid var(--border);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr {
+            transition: var(--transition);
+        }
+
+        tr:hover td {
+            background: #fafffa;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .user-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: var(--transition);
+        }
+
+        .user-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .user-status.lunch {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .user-status.off {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .user-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .user-status.active .dot {
+            background: #28a745;
+        }
+        .user-status.lunch .dot {
+            background: #e6b422;
+        }
+        .user-status.off .dot {
+            background: #dc3545;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn-sm {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'El Messiri', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 32px;
+            justify-content: center;
+        }
+
+        .action-btn-sm.view {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        .action-btn-sm.view:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.edit {
+            background: #d4edda;
+            color: #155724;
+        }
+        .action-btn-sm.edit:hover {
+            background: #28a745;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.salary {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .action-btn-sm.salary:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.reset {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .action-btn-sm.reset:hover {
+            background: #e6b422;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.delete {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .action-btn-sm.delete:hover {
+            background: #dc3545;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.log {
+            background: #d6eaf8;
+            color: #1a5276;
+        }
+        .action-btn-sm.log:hover {
+            background: #2d7fb9;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn-sm.time-edit {
+            background: #e8daef;
+            color: #6c3483;
+        }
+        .action-btn-sm.time-edit:hover {
+            background: #6c3483;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* ----- CHECKBOX STYLING ----- */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        input[type="checkbox"]:hover {
+            transform: scale(1.1);
+        }
+
+        /* ----- POPUP ----- */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 47, 32, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .popup-box {
+            background: #fff;
+            max-width: 580px;
+            width: 100%;
+            padding: 36px 32px 32px;
+            border-radius: 28px;
+            box-shadow: var(--shadow-lg);
+            animation: popSlide 0.3s ease;
+            border: 1px solid var(--border);
+            max-height: 92vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        @keyframes popSlide {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .popup-box h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .popup-box h3 i {
+            color: var(--accent);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group label i {
+            color: var(--accent);
+            margin-right: 6px;
+            width: 18px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'El Messiri', sans-serif;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(42, 157, 94, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .popup-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .popup-actions button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'El Messiri', sans-serif;
+            flex: 1;
+            min-width: 100px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .popup-actions .btn-save {
+            background: var(--accent-gradient);
+            color: white;
+        }
+        .popup-actions .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(42, 157, 94, 0.35);
+        }
+
+        .popup-actions .btn-cancel {
+            background: var(--bg);
+            color: var(--text);
+        }
+        .popup-actions .btn-cancel:hover {
+            background: #e0e8e2;
+            transform: translateY(-2px);
+        }
+
+        .popup-actions .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .popup-actions .btn-danger:hover {
+            background: var(--danger-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(192, 57, 43, 0.35);
+        }
+
+        .popup-actions .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .popup-actions .btn-warning:hover {
+            background: var(--warning-hover);
+            transform: translateY(-2px);
+        }
+
+        .close-popup {
+            position: sticky;
+            top: 0;
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 4px 8px;
+            border-radius: 50%;
+        }
+
+        .close-popup:hover {
+            color: var(--danger);
+            background: #f8d7da;
+            transform: rotate(90deg);
+        }
+
+        .user-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .user-detail-grid .detail-item {
+            padding: 10px 14px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .user-detail-grid .detail-item .dlabel {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .user-detail-grid .detail-item .dvalue {
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 3px;
+        }
+
+        .log-list {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+        }
+
+        .log-list .log-entry {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .log-list .log-entry:hover {
+            background: white;
+        }
+
+        .log-list .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-list .log-entry .log-action {
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .log-list .log-entry .log-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .half-time-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #fdebd0;
+            color: #935e38;
+        }
+
+        .half-time-badge.yes {
+            background: #fdebd0;
+            color: #935e38;
+        }
+        .half-time-badge.no {
+            background: #d5f5e3;
+            color: #1a7a48;
+        }
+
+        .global-half-time {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #e8daef;
+            color: #6c3483;
+            border: 1px solid #6c3483;
+        }
+
+        /* ----- TOAST ----- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            padding: 16px 28px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            animation: slideUp 0.4s ease;
+            font-family: 'El Messiri', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 380px;
+            border-left: 4px solid var(--accent);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.success {
+            background: #0a2f20;
+            border-left-color: var(--accent);
+        }
+        .toast.error {
+            background: #2f0a0a;
+            border-left-color: var(--danger);
+        }
+        .toast.warning {
+            background: #2f2a0a;
+            border-left-color: var(--warning);
+        }
+        .toast.info {
+            background: #0a1a2f;
+            border-left-color: var(--info);
+        }
+
+        .toast i {
+            font-size: 1.2rem;
+        }
+
+        /* ----- RESPONSIVE ----- */
+        @media (max-width: 768px) {
+            .header {
+                padding: 16px 20px;
+            }
+            .admin-logo h1 {
+                font-size: 1.1rem;
+            }
+            .admin-logo img {
+                width: 40px;
+                height: 40px;
+            }
+            .stats-overview {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .stat-mini {
+                padding: 14px 12px;
+            }
+            .stat-mini .number {
+                font-size: 1.3rem;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .user-detail-grid {
+                grid-template-columns: 1fr;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+            }
+            .toolbar-left,
+            .toolbar-right {
+                justify-content: center;
+            }
+            .search-box {
+                min-width: unset;
+                flex: 1;
+            }
+            .search-box input {
+                width: 100%;
+            }
+            .popup-box {
+                padding: 24px 18px;
+                max-width: 100%;
+            }
+            .header-time {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-overview {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .action-btn-sm {
+                width: 100%;
+                justify-content: center;
+                padding: 8px;
+            }
+            .popup-actions {
+                flex-direction: column;
+            }
+            .popup-actions button {
+                width: 100%;
+            }
+            .admin-badge {
+                font-size: 0.7rem;
+                padding: 4px 12px;
+            }
+            .toolbar-btn {
+                font-size: 0.75rem;
+                padding: 8px 14px;
+            }
+        }
+
+        .popup-box::-webkit-scrollbar,
+        .log-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .popup-box::-webkit-scrollbar-track,
+        .log-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .popup-box::-webkit-scrollbar-thumb,
+        .log-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        .popup-box::-webkit-scrollbar-thumb:hover,
+        .log-list::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .loading-text {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-muted);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3.5rem;
+            color: var(--border);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .empty-state .empty-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <div class="admin-logo">
+                    <img src="https://i.postimg.cc/4NZvHPQ4/cropped-circle-image-(1).png" alt="Logo" />
+                    <h1>IGNITE <span>FLEX</span> · Admin</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="admin-badge"><i class="fas fa-shield-alt"></i> Admin Panel</div>
+                <div class="header-time"><i class="far fa-clock"></i> <span id="liveTime"></span></div>
+            </div>
+        </header>
+
+        <!-- STATS OVERVIEW -->
+        <section class="stats-overview" id="statsOverview">
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-users"></i></div>
+                <div class="number" id="totalUsers">0</div>
+                <div class="label">Total Users</div>
+            </div>
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-circle" style="color:#28a745;"></i></div>
+                <div class="number" id="activeUsers">0</div>
+                <div class="label">Active</div>
+            </div>
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-circle" style="color:#e6b422;"></i></div>
+                <div class="number" id="lunchUsers">0</div>
+                <div class="label">On Lunch</div>
+            </div>
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-circle" style="color:#dc3545;"></i></div>
+                <div class="number" id="offUsers">0</div>
+                <div class="label">Offline</div>
+            </div>
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-calendar-day"></i></div>
+                <div class="number" id="todayActive">0</div>
+                <div class="label">Today Active</div>
+            </div>
+            <div class="stat-mini">
+                <div class="icon-circle"><i class="fas fa-coins"></i></div>
+                <div class="number" id="totalRevenue">₹0</div>
+                <div class="label">Total Revenue</div>
+            </div>
+        </section>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search users..." oninput="window.filterUsers()" />
+                </div>
+                <button class="toolbar-btn primary" id="btnCreateUser"><i class="fas fa-user-plus"></i> Create</button>
+                <button class="toolbar-btn half-global" id="btnGlobalHalfTime"><i class="fas fa-moon"></i> Global Half Time</button>
+            </div>
+            <div class="toolbar-right">
+                <span class="global-half-time" id="globalHalfDisplay"><i class="fas fa-clock"></i> Half: 12:30 PM</span>
+                <button class="toolbar-btn warning" id="btnBulkReset"><i class="fas fa-sync-alt"></i> Bulk Reset</button>
+                <button class="toolbar-btn info" id="btnExportData"><i class="fas fa-file-export"></i> Export</button>
+                <button class="toolbar-btn danger" id="btnClearAllData"><i class="fas fa-trash-alt"></i> Clear All</button>
+            </div>
+        </div>
+
+        <!-- USER TABLE -->
+        <div class="user-table-container">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" onchange="window.toggleSelectAll()" /></th>
+                            <th>User ID</th>
+                            <th>Status</th>
+                            <th>Today Worked</th>
+                            <th>Total Worked</th>
+                            <th>Revenue</th>
+                            <th>Half Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr>
+                            <td colspan="8" class="loading-text"><i class="fas fa-spinner fa-spin"></i> Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-box" id="popupBox">
+            <button class="close-popup" id="closePopup"><i class="fas fa-times"></i></button>
+            <div id="popupContent"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ----- FIREBASE CONFIG -----
+            const firebaseConfig = {
+                apiKey: "AIzaSyCdfN-w4UVR3PZxHt5Prqs9dqqBmdw88e4",
+                authDomain: "igniteflex-a6981.firebaseapp.com",
+                databaseURL: "https://igniteflex-a6981-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "igniteflex-a6981",
+                storageBucket: "igniteflex-a6981.firebasestorage.app",
+                messagingSenderId: "1063195168399",
+                appId: "1:1063195168399:android:bae29b129e248894c66afa"
+            };
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.database();
+
+            // ----- DOM REFS -----
+            const $ = (id) => document.getElementById(id);
+            const userTableBody = $('userTableBody');
+            const totalUsers = $('totalUsers');
+            const activeUsers = $('activeUsers');
+            const lunchUsers = $('lunchUsers');
+            const offUsers = $('offUsers');
+            const todayActive = $('todayActive');
+            const totalRevenue = $('totalRevenue');
+            const liveTime = $('liveTime');
+            const globalHalfDisplay = $('globalHalfDisplay');
+
+            const popupOverlay = $('popupOverlay');
+            const popupContent = $('popupContent');
+            const closePopup = $('closePopup');
+            const searchInput = $('searchInput');
+
+            let allUsers = {};
+            let filteredUsers = {};
+            let globalHalfTime = '12:30';
+
+            // ----- LIVE CLOCK -----
+            function updateClock() {
+                const now = new Date();
+                liveTime.textContent = now.toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // ----- TOAST NOTIFICATION -----
+            function showToast(message, type = 'success') {
+                const existing = document.querySelector('.toast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(30px)';
+                    setTimeout(() => toast.remove(), 400);
+                }, 4000);
+            }
+
+            // ----- POPUP HELPERS -----
+            function showPopup(html) {
+                popupContent.innerHTML = html;
+                popupOverlay.style.display = 'flex';
+            }
+
+            function hidePopup() {
+                popupOverlay.style.display = 'none';
+            }
+
+            closePopup.addEventListener('click', hidePopup);
+            popupOverlay.addEventListener('click', (e) => {
+                if (e.target === popupOverlay) hidePopup();
+            });
+
+            // ----- HELPERS -----
+            function formatDuration(sec) {
+                if (!sec || sec < 0) return '0h 0m';
+                const h = Math.floor(sec / 3600);
+                const m = Math.floor((sec % 3600) / 60);
+                return `${h}h ${m}m`;
+            }
+
+            function parseDateTime(dateTimeStr) {
+                if (!dateTimeStr) return null;
+                const parts = dateTimeStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s*\[(\d{1,2}):(\d{2})\s*(AM|PM)\]/);
+                if (!parts) return null;
+                let h = parseInt(parts[4]);
+                const m = parseInt(parts[5]);
+                const ampm = parts[6];
+                if (ampm === 'PM' && h !== 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]), h, m);
+            }
+
+            function formatDateTime(d) {
+                if (!d) return null;
+                return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} [${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}]`;
+            }
+
+            function isHalfTime(loginDate) {
+                if (!loginDate) return false;
+                const [halfHour, halfMin] = globalHalfTime.split(':').map(Number);
+                const halfDateTime = new Date(loginDate);
+                halfDateTime.setHours(halfHour, halfMin, 0, 0);
+                return loginDate >= halfDateTime;
+            }
+
+            // ----- LOAD GLOBAL HALF TIME -----
+            async function loadGlobalHalfTime() {
+                try {
+                    const snapshot = await db.ref('config/globalHalfTime').once('value');
+                    const data = snapshot.val();
+                    if (data) {
+                        globalHalfTime = data;
+                        const [h, m] = data.split(':');
+                        const hour = parseInt(h);
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                        globalHalfDisplay.innerHTML = `<i class="fas fa-clock"></i> Half: ${displayHour}:${m.padStart(2, '0')} ${ampm}`;
+                    }
+                } catch (e) {
+                    console.warn('Error loading global half time:', e);
+                }
+            }
+
+            // ----- SAVE GLOBAL HALF TIME -----
+            async function saveGlobalHalfTime(time) {
+                try {
+                    await db.ref('config/globalHalfTime').set(time);
+                    globalHalfTime = time;
+                    const [h, m] = time.split(':');
+                    const hour = parseInt(h);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                    globalHalfDisplay.innerHTML = `<i class="fas fa-clock"></i> Half: ${displayHour}:${m.padStart(2, '0')} ${ampm}`;
+                    showToast(`Global half time set to ${displayHour}:${m.padStart(2, '0')} ${ampm}`, 'success');
+                    loadAllUsers();
+                } catch (e) {
+                    console.error('Save global half time error:', e);
+                    showToast('Error saving global half time.', 'error');
+                }
+            }
+
+            // ----- EXPORT DATA -----
+            function exportData() {
+                const data = JSON.stringify(allUsers, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `igniteflex_users_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Data exported successfully!', 'success');
+            }
+
+            // ----- LOAD ALL USERS -----
+            async function loadAllUsers() {
+                try {
+                    const snapshot = await db.ref('users').once('value');
+                    const data = snapshot.val() || {};
+                    allUsers = data;
+
+                    const userIds = Object.keys(allUsers);
+                    totalUsers.textContent = userIds.length;
+
+                    let active = 0,
+                        lunch = 0,
+                        off = 0,
+                        todayAct = 0,
+                        rev = 0;
+                    const today = new Date().toISOString().slice(0, 10);
+
+                    userIds.forEach(id => {
+                        const user = allUsers[id];
+                        const status = user?.meta?.status || 'off';
+                        if (status === 'active') active++;
+                        else if (status === 'lunch') lunch++;
+                        else off++;
+
+                        if (user?.days?.[today]?.loginTime) todayAct++;
+
+                        if (user?.meta?.totalRevenue) rev += user.meta.totalRevenue;
+                    });
+                    activeUsers.textContent = active;
+                    lunchUsers.textContent = lunch;
+                    offUsers.textContent = off;
+                    todayActive.textContent = todayAct;
+                    totalRevenue.textContent = `₹${rev}`;
+
+                    filterUsers();
+                } catch (e) {
+                    console.error('Load users error:', e);
+                    userTableBody.innerHTML =
+                        `<tr><td colspan="8" class="loading-text">Error loading users. Please refresh.</td></tr>`;
+                }
+            }
+
+            // ----- FILTER USERS -----
+            window.filterUsers = function() {
+                const query = searchInput.value.toLowerCase().trim();
+                const userIds = Object.keys(allUsers);
+                filteredUsers = {};
+
+                if (!query) {
+                    filteredUsers = { ...allUsers };
+                } else {
+                    userIds.forEach(id => {
+                        if (id.toLowerCase().includes(query)) {
+                            filteredUsers[id] = allUsers[id];
+                        }
+                    });
+                }
+                renderTable();
+            };
+
+            // ----- RENDER TABLE -----
+            function renderTable() {
+                const userIds = Object.keys(filteredUsers);
+                if (!userIds.length) {
+                    userTableBody.innerHTML = `
+                        <tr><td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <div class="empty-title">${searchInput.value ? 'No users match your search.' : 'No users found'}</div>
+                                <div style="color:var(--text-muted);font-size:0.9rem;margin-top:4px;">
+                                    ${searchInput.value ? 'Try a different search term.' : 'Create your first user by clicking the "Create" button above.'}
+                                </div>
+                            </div>
+                        </td></tr>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                const today = new Date().toISOString().slice(0, 10);
+
+                userIds.forEach(id => {
+                    const user = allUsers[id];
+                    const meta = user?.meta || {};
+                    const todayData = user?.days?.[today] || {};
+                    const status = meta.status || 'off';
+
+                    const statusClass = status === 'active' ? 'active' : status === 'lunch' ? 'lunch' : 'off';
+                    const statusLabel = status === 'active' ? 'Active' : status === 'lunch' ? 'Lunch' : 'Offline';
+
+                    const todayWorked = todayData.workedSeconds || 0;
+                    const totalWorked = meta.totalWorkedSeconds || 0;
+                    const revenue = meta.totalRevenue || 'N/A';
+
+                    const loginTime = todayData.loginTime;
+                    let isHalf = false;
+                    if (loginTime) {
+                        const loginDate = parseDateTime(loginTime);
+                        if (loginDate) {
+                            isHalf = isHalfTime(loginDate);
+                        }
+                    }
+
+                    html += `
+                        <tr>
+                            <td><input type="checkbox" class="user-checkbox" data-userid="${id}" /></td>
+                            <td><strong style="color:var(--primary);">${id}</strong></td>
+                            <td><span class="user-status ${statusClass}"><span class="dot"></span> ${statusLabel}</span></td>
+                            <td>${formatDuration(todayWorked)}</td>
+                            <td>${formatDuration(totalWorked)}</td>
+                            <td>${typeof revenue === 'number' ? '₹' + revenue : revenue}</td>
+                            <td><span class="half-time-badge ${isHalf ? 'yes' : 'no'}">${isHalf ? 'Yes' : 'No'}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn-sm view" onclick="window.viewUser('${id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn-sm edit" onclick="window.editUser('${id}')" title="Edit User"><i class="fas fa-edit"></i></button>
+                                    <button class="action-btn-sm time-edit" onclick="window.editLoginTime('${id}')" title="Edit Login Time"><i class="fas fa-clock"></i></button>
+                                    <button class="action-btn-sm salary" onclick="window.sendSalary('${id}')" title="Send Salary"><i class="fas fa-coins"></i></button>
+                                    <button class="action-btn-sm reset" onclick="window.resetUser('${id}')" title="Reset Today"><i class="fas fa-sync-alt"></i></button>
+                                    <button class="action-btn-sm log" onclick="window.viewLogs('${id}')" title="View Logs"><i class="fas fa-history"></i></button>
+                                    <button class="action-btn-sm delete" onclick="window.deleteUser('${id}')" title="Delete User"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                userTableBody.innerHTML = html;
+
+                document.getElementById('selectAll').checked = false;
+            }
+
+            // ----- TOGGLE SELECT ALL -----
+            window.toggleSelectAll = function() {
+                const checked = document.getElementById('selectAll').checked;
+                document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = checked);
+            };
+
+            // ----- GET SELECTED USERS -----
+            function getSelectedUsers() {
+                const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+                return Array.from(checkboxes).map(cb => cb.dataset.userid);
+            }
+
+            // ----- BULK RESET -----
+            document.getElementById('btnBulkReset').addEventListener('click', () => {
+                const selected = getSelectedUsers();
+                if (!selected.length) {
+                    showToast('Please select at least one user.', 'warning');
+                    return;
+                }
+                if (!confirm(`Reset today's data for ${selected.length} user(s)?`)) return;
+
+                const today = new Date().toISOString().slice(0, 10);
+                const promises = selected.map(id => {
+                    return db.ref(`users/${id}/days/${today}`).remove();
+                });
+
+                Promise.all(promises)
+                    .then(() => {
+                        showToast(`${selected.length} user(s) reset successfully!`, 'success');
+                        loadAllUsers();
+                    })
+                    .catch(e => {
+                        console.error('Bulk reset error:', e);
+                        showToast('Error resetting users.', 'error');
+                    });
+            });
+
+            // ----- EXPORT -----
+            document.getElementById('btnExportData').addEventListener('click', exportData);
+
+            // ----- GLOBAL HALF TIME -----
+            document.getElementById('btnGlobalHalfTime').addEventListener('click', () => {
+                const [h, m] = globalHalfTime.split(':');
+                const hour = parseInt(h);
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+
+                showPopup(`
+                    <h3><i class="fas fa-moon" style="color:#6c3483;"></i> Global Half Time Settings</h3>
+                    <div style="background:var(--bg);padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid var(--border);">
+                        <div style="font-size:0.85rem;color:var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> Current half time: <strong style="color:var(--text);">${displayHour}:${m.padStart(2, '0')} ${ampm}</strong>
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-clock"></i> Users logging in after this time will be marked as half-time
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-clock"></i> Set Half Time</label>
+                        <input type="time" id="globalHalfTimeInput" value="${globalHalfTime}" />
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> This time will be applied globally to all users from tomorrow
+                        </div>
+                    </div>
+                    <div style="background:#fdebd0;padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid #f5cba7;">
+                        <div style="font-size:0.8rem;color:#935e38;">
+                            <i class="fas fa-calendar-alt"></i> <strong>Note:</strong> Changes will apply from <strong>tomorrow</strong> (${new Date(Date.now() + 86400000).toISOString().slice(0,10)}). 
+                            Today's half-time status remains unchanged.
+                        </div>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-save" onclick="window.saveGlobalHalfTime()"><i class="fas fa-save"></i> Update Global Half Time</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            });
+
+            window.saveGlobalHalfTime = async function() {
+                const time = document.getElementById('globalHalfTimeInput').value;
+                if (!time) {
+                    showToast('Please select a valid time.', 'warning');
+                    return;
+                }
+                await saveGlobalHalfTime(time);
+                hidePopup();
+            };
+
+            // ----- CREATE USER -----
+            function showCreateUser() {
+                showPopup(`
+                    <h3><i class="fas fa-user-plus"></i> Create New User</h3>
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> User ID</label>
+                        <input type="text" id="newUserId" placeholder="Enter unique user ID" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="text" id="newUserPassword" placeholder="Enter password" />
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-save" onclick="window.createUser()"><i class="fas fa-save"></i> Create</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            }
+
+            window.createUser = async function() {
+                const userId = document.getElementById('newUserId').value.trim();
+                const password = document.getElementById('newUserPassword').value.trim();
+                if (!userId || !password) {
+                    showToast('Please fill all fields.', 'warning');
+                    return;
+                }
+                if (allUsers[userId]) {
+                    showToast('User ID already exists!', 'error');
+                    return;
+                }
+
+                try {
+                    await db.ref(`users/${userId}`).set({
+                        password: password,
+                        meta: {
+                            status: 'off',
+                            workingDays: 0,
+                            totalWorkedSeconds: 0,
+                            totalLunchSeconds: 0,
+                            halfTimeCount: 0,
+                            totalRevenue: 0,
+                            revenueHistory: []
+                        },
+                        days: {}
+                    });
+                    hidePopup();
+                    await loadAllUsers();
+                    showToast(`User "${userId}" created successfully!`, 'success');
+                } catch (e) {
+                    console.error('Create user error:', e);
+                    showToast('Error creating user.', 'error');
+                }
+            };
+
+            document.getElementById('btnCreateUser').addEventListener('click', showCreateUser);
+
+            // ----- VIEW USER -----
+            window.viewUser = function(userId) {
+                const user = allUsers[userId];
+                if (!user) return;
+                const meta = user.meta || {};
+                const today = new Date().toISOString().slice(0, 10);
+                const todayData = user.days?.[today] || {};
+
+                const status = meta.status || 'off';
+                const statusLabel = status === 'active' ? 'Active' : status === 'lunch' ? 'Lunch' : 'Offline';
+
+                const loginTime = todayData.loginTime;
+                let isHalf = false;
+                if (loginTime) {
+                    const loginDate = parseDateTime(loginTime);
+                    if (loginDate) isHalf = isHalfTime(loginDate);
+                }
+
+                showPopup(`
+                    <h3><i class="fas fa-user-circle"></i> ${userId}</h3>
+                    <div class="user-detail-grid">
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-circle"></i> Status</div><div class="dvalue"><span class="user-status ${status}"><span class="dot"></span> ${statusLabel}</span></div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-clock"></i> Today Worked</div><div class="dvalue">${formatDuration(todayData.workedSeconds || 0)}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-hourglass-half"></i> Total Worked</div><div class="dvalue">${formatDuration(meta.totalWorkedSeconds || 0)}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-utensils"></i> Total Lunch</div><div class="dvalue">${formatDuration(meta.totalLunchSeconds || 0)}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-coins"></i> Revenue</div><div class="dvalue">${typeof meta.totalRevenue === 'number' ? '₹' + meta.totalRevenue : meta.totalRevenue || 'N/A'}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-calendar-check"></i> Working Days</div><div class="dvalue">${meta.workingDays || 0}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-moon"></i> Half Time</div><div class="dvalue"><span class="half-time-badge ${isHalf ? 'yes' : 'no'}">${isHalf ? 'Yes' : 'No'}</span></div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-sign-in-alt"></i> Login Time</div><div class="dvalue">${todayData.loginTime || '—'}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-utensils"></i> Lunch Time</div><div class="dvalue">${todayData.lunchTime || '—'}</div></div>
+                        <div class="detail-item"><div class="dlabel"><i class="fas fa-sign-out-alt"></i> Logout Time</div><div class="dvalue">${todayData.logoutTime || '—'}</div></div>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-cancel" onclick="window.hidePopup()"><i class="fas fa-times"></i> Close</button>
+                    </div>
+                `);
+            };
+
+            // ----- EDIT USER (clean - only password, working days, and user ID edit) -----
+            window.editUser = function(userId) {
+                const user = allUsers[userId];
+                if (!user) return;
+                const meta = user.meta || {};
+
+                showPopup(`
+                    <h3><i class="fas fa-edit"></i> Edit User</h3>
+                    <div style="background:var(--bg);padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid var(--border);">
+                        <div style="font-size:0.85rem;color:var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> Editing user: <strong style="color:var(--text);">${userId}</strong>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-id-card"></i> New User ID</label>
+                        <input type="text" id="editUserId" value="${userId}" placeholder="Enter new user ID" />
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> Changing the user ID will update all references
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="text" id="editPassword" value="${user.password || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-check"></i> Working Days</label>
+                        <input type="number" id="editWorkingDays" value="${meta.workingDays || 0}" />
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-save" onclick="window.saveEdit('${userId}')"><i class="fas fa-save"></i> Save</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            };
+
+            window.saveEdit = async function(oldUserId) {
+                const newUserId = document.getElementById('editUserId').value.trim();
+                const password = document.getElementById('editPassword').value.trim();
+                const workingDays = parseInt(document.getElementById('editWorkingDays').value) || 0;
+
+                if (!newUserId) {
+                    showToast('User ID cannot be empty.', 'warning');
+                    return;
+                }
+                if (!password) {
+                    showToast('Password cannot be empty.', 'warning');
+                    return;
+                }
+
+                try {
+                    // If user ID is changing
+                    if (newUserId !== oldUserId) {
+                        // Check if new user ID already exists
+                        if (allUsers[newUserId]) {
+                            showToast('User ID already exists!', 'error');
+                            return;
+                        }
+
+                        // Get all data from old user
+                        const oldUserData = await db.ref(`users/${oldUserId}`).once('value');
+                        const userData = oldUserData.val();
+
+                        if (!userData) {
+                            showToast('User data not found.', 'error');
+                            return;
+                        }
+
+                        // Update the user ID in the data
+                        userData.meta = userData.meta || {};
+                        userData.meta.workingDays = workingDays;
+                        userData.password = password;
+
+                        // Create new user with same data
+                        await db.ref(`users/${newUserId}`).set(userData);
+
+                        // Delete old user
+                        await db.ref(`users/${oldUserId}`).remove();
+
+                        showToast(`User ID changed from "${oldUserId}" to "${newUserId}" successfully!`, 'success');
+                    } else {
+                        // Just update password and working days
+                        await db.ref(`users/${oldUserId}`).update({
+                            password: password,
+                            meta: {
+                                ...allUsers[oldUserId]?.meta,
+                                workingDays: workingDays
+                            }
+                        });
+                        showToast(`User "${oldUserId}" updated successfully!`, 'success');
+                    }
+
+                    hidePopup();
+                    await loadAllUsers();
+                } catch (e) {
+                    console.error('Edit error:', e);
+                    showToast('Error updating user.', 'error');
+                }
+            };
+
+            // ----- EDIT LOGIN TIME (half-time adjustment) -----
+            window.editLoginTime = function(userId) {
+                const user = allUsers[userId];
+                if (!user) return;
+                const meta = user.meta || {};
+                const today = new Date().toISOString().slice(0, 10);
+                const todayData = user.days?.[today] || {};
+
+                const currentLogin = todayData.loginTime || '';
+                const currentHalfCount = meta.halfTimeCount || 0;
+
+                let isCurrentlyHalf = false;
+                if (currentLogin) {
+                    const loginDate = parseDateTime(currentLogin);
+                    if (loginDate) isCurrentlyHalf = isHalfTime(loginDate);
+                }
+
+                showPopup(`
+                    <h3><i class="fas fa-clock" style="color:#6c3483;"></i> Edit Login Time - ${userId}</h3>
+                    <div style="background:var(--bg);padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:16px;border:1px solid var(--border);">
+                        <div style="font-size:0.85rem;color:var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> Current login: <strong style="color:var(--text);">${currentLogin || 'Not logged in'}</strong>
+                        </div>
+                        <div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-moon"></i> Half-time status: <span class="half-time-badge ${isCurrentlyHalf ? 'yes' : 'no'}">${isCurrentlyHalf ? 'Yes' : 'No'}</span>
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-coins"></i> Total half-time days: <strong style="color:var(--text);">${currentHalfCount}</strong>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Date</label>
+                        <input type="date" id="loginEditDate" value="${today}" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-clock"></i> Login Time</label>
+                        <input type="time" id="loginEditTime" value="${currentLogin ? currentLogin.match(/\[(\d{1,2}):(\d{2})\s*(AM|PM)\]/) ? 
+                            (() => { const t = currentLogin.match(/\[(\d{1,2}):(\d{2})\s*(AM|PM)\]/); 
+                                let h = parseInt(t[1]); const m = t[2]; const ap = t[3]; 
+                                if (ap === 'PM' && h !== 12) h += 12; 
+                                if (ap === 'AM' && h === 12) h = 0; 
+                                return `${String(h).padStart(2, '0')}:${m}`; })() : '09:00' : '09:00'}" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-moon"></i> Half Time Status</label>
+                        <select id="loginHalfStatus">
+                            <option value="auto">Auto (based on time)</option>
+                            <option value="yes" ${isCurrentlyHalf ? 'selected' : ''}>Yes (force half-time)</option>
+                            <option value="no">No (force full-time)</option>
+                        </select>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> "Auto" uses global half-time setting (${globalHalfTime})
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-comment"></i> Reason (optional)</label>
+                        <textarea id="loginEditReason" placeholder="Why is this being changed?"></textarea>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-save" onclick="window.saveLoginTime('${userId}')"><i class="fas fa-save"></i> Update</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            };
+
+            window.saveLoginTime = async function(userId) {
+                const dateStr = document.getElementById('loginEditDate').value;
+                const timeStr = document.getElementById('loginEditTime').value;
+                const halfStatus = document.getElementById('loginHalfStatus').value;
+                const reason = document.getElementById('loginEditReason').value.trim();
+
+                if (!dateStr || !timeStr) {
+                    showToast('Please select both date and time.', 'warning');
+                    return;
+                }
+
+                try {
+                    const user = allUsers[userId];
+                    const meta = user?.meta || {};
+                    const today = new Date().toISOString().slice(0, 10);
+
+                    // Parse the new login time
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    const loginDateTime = new Date(dateStr);
+                    loginDateTime.setHours(hours, minutes, 0, 0);
+
+                    const formattedLogin = formatDateTime(loginDateTime);
+
+                    // Determine half-time status
+                    let isHalf = isHalfTime(loginDateTime);
+                    if (halfStatus === 'yes') isHalf = true;
+                    else if (halfStatus === 'no') isHalf = false;
+
+                    // Get day data
+                    const dayRef = db.ref(`users/${userId}/days/${dateStr}`);
+                    const daySnapshot = await dayRef.once('value');
+                    const dayData = daySnapshot.val() || {};
+
+                    // Calculate worked time
+                    const now = new Date();
+                    let workedSeconds = 0;
+
+                    if (dayData.logoutTime) {
+                        const logoutDate = parseDateTime(dayData.logoutTime);
+                        if (logoutDate) {
+                            workedSeconds = Math.floor((logoutDate - loginDateTime) / 1000);
+                        }
+                    } else {
+                        workedSeconds = Math.floor((now - loginDateTime) / 1000);
+                    }
+
+                    // Subtract lunch time
+                    if (dayData.lunchTime && dayData.lunchOverTime) {
+                        const lunchStart = parseDateTime(dayData.lunchTime);
+                        const lunchEnd = parseDateTime(dayData.lunchOverTime);
+                        if (lunchStart && lunchEnd) {
+                            const lunchDuration = Math.floor((lunchEnd - lunchStart) / 1000);
+                            workedSeconds = Math.max(0, workedSeconds - lunchDuration);
+                        }
+                    }
+
+                    workedSeconds = Math.max(0, workedSeconds);
+
+                    // Update half-time count
+                    const currentHalfCount = meta.halfTimeCount || 0;
+                    let newHalfCount = currentHalfCount;
+
+                    const wasHalf = dayData.loginTime ? isHalfTime(parseDateTime(dayData.loginTime)) : false;
+
+                    if (isHalf && !wasHalf) {
+                        newHalfCount = currentHalfCount + 1;
+                    } else if (!isHalf && wasHalf) {
+                        newHalfCount = Math.max(0, currentHalfCount - 1);
+                    }
+
+                    // Update the day data
+                    await dayRef.update({
+                        loginTime: formattedLogin,
+                        workedSeconds: workedSeconds
+                    });
+
+                    // Update meta
+                    await db.ref(`users/${userId}/meta`).update({
+                        halfTimeCount: newHalfCount,
+                        totalWorkedSeconds: (meta.totalWorkedSeconds || 0) + workedSeconds - (dayData.workedSeconds || 0),
+                        status: dayData.logoutTime ? 'off' : 'active'
+                    });
+
+                    // Add to history
+                    const historyEntry = {
+                        action: 'login_time_edit',
+                        time: new Date().toLocaleString(),
+                        date: dateStr,
+                        newLoginTime: formattedLogin,
+                        halfStatus: isHalf ? 'Half' : 'Full',
+                        reason: reason || 'Admin adjusted login time'
+                    };
+                    await db.ref(`users/${userId}/history`).push().set(historyEntry);
+
+                    hidePopup();
+                    await loadAllUsers();
+                    showToast(`Login time updated for ${userId}. New time: ${formattedLogin}`, 'success');
+                } catch (e) {
+                    console.error('Login time update error:', e);
+                    showToast('Error updating login time.', 'error');
+                }
+            };
+
+            // ----- RESET USER -----
+            window.resetUser = function(userId) {
+                if (!confirm(`Reset today's data for "${userId}"?`)) return;
+                const today = new Date().toISOString().slice(0, 10);
+
+                db.ref(`users/${userId}/days/${today}`).remove()
+                    .then(() => {
+                        showToast(`Today's data reset for "${userId}"`, 'success');
+                        loadAllUsers();
+                    })
+                    .catch(e => {
+                        console.error('Reset error:', e);
+                        showToast('Error resetting user data.', 'error');
+                    });
+            };
+
+            // ----- VIEW LOGS -----
+            window.viewLogs = async function(userId) {
+                try {
+                    const history = await db.ref(`users/${userId}/history`).once('value');
+                    const data = history.val() || {};
+                    const entries = Object.values(data);
+
+                    if (!entries.length) {
+                        showPopup(`
+                            <h3><i class="fas fa-history"></i> ${userId} - Activity Log</h3>
+                            <div style="text-align:center;padding:30px;color:var(--text-muted);">
+                                <i class="fas fa-inbox" style="font-size:2.5rem;display:block;margin-bottom:12px;color:var(--border);"></i>
+                                No activity logs found.
+                            </div>
+                            <div class="popup-actions">
+                                <button class="btn-cancel" onclick="window.hidePopup()">Close</button>
+                            </div>
+                        `);
+                        return;
+                    }
+
+                    let logHtml = '<div class="log-list">';
+                    entries.reverse().forEach(entry => {
+                        const action = entry.action || 'unknown';
+                        const time = entry.time || '';
+                        const iconMap = {
+                            login: 'fa-sign-in-alt',
+                            lunch: 'fa-utensils',
+                            lunch_over: 'fa-check-circle',
+                            logout: 'fa-sign-out-alt',
+                            login_time_edit: 'fa-clock',
+                            half_time_edit: 'fa-moon'
+                        };
+                        const icon = iconMap[action] || 'fa-circle';
+                        const actionLabel = action.replace('_', ' ').toUpperCase();
+                        logHtml += `
+                            <div class="log-entry">
+                                <span class="log-action"><i class="fas ${icon}" style="color:var(--accent);"></i> ${actionLabel}</span>
+                                <span class="log-time">${time}</span>
+                            </div>
+                        `;
+                    });
+                    logHtml += '</div>';
+
+                    showPopup(`
+                        <h3><i class="fas fa-history"></i> ${userId} - Activity Log</h3>
+                        ${logHtml}
+                        <div class="popup-actions">
+                            <button class="btn-cancel" onclick="window.hidePopup()">Close</button>
+                        </div>
+                    `);
+                } catch (e) {
+                    console.error('Logs error:', e);
+                    showToast('Error loading logs.', 'error');
+                }
+            };
+
+            // ----- SEND SALARY -----
+            window.sendSalary = function(userId) {
+                showPopup(`
+                    <h3><i class="fas fa-coins"></i> Send Salary to ${userId}</h3>
+                    <div class="form-group">
+                        <label><i class="fas fa-money-bill-wave"></i> Amount (₹)</label>
+                        <input type="number" id="salaryAmount" placeholder="Enter salary amount" min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Date</label>
+                        <input type="date" id="salaryDate" value="${new Date().toISOString().slice(0,10)}" />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-comment"></i> Note (optional)</label>
+                        <textarea id="salaryNote" placeholder="Add a note..."></textarea>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-save" onclick="window.sendSalaryConfirm('${userId}')"><i class="fas fa-paper-plane"></i> Send</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            };
+
+            window.sendSalaryConfirm = async function(userId) {
+                const amount = parseInt(document.getElementById('salaryAmount').value);
+                const date = document.getElementById('salaryDate').value;
+                const note = document.getElementById('salaryNote').value.trim();
+
+                if (!amount || amount <= 0) {
+                    showToast('Please enter a valid amount.', 'warning');
+                    return;
+                }
+                if (!date) {
+                    showToast('Please select a date.', 'warning');
+                    return;
+                }
+
+                try {
+                    const user = allUsers[userId];
+                    const meta = user?.meta || {};
+                    const currentRevenue = meta.totalRevenue || 0;
+                    const revenueHistory = meta.revenueHistory || [];
+
+                    revenueHistory.push({
+                        amount: amount,
+                        date: date,
+                        note: note || 'Salary payment',
+                        timestamp: new Date().toISOString()
+                    });
+
+                    await db.ref(`users/${userId}/meta`).update({
+                        totalRevenue: currentRevenue + amount,
+                        revenueHistory: revenueHistory
+                    });
+
+                    hidePopup();
+                    await loadAllUsers();
+                    showToast(`₹${amount} salary sent to ${userId}!`, 'success');
+                } catch (e) {
+                    console.error('Salary error:', e);
+                    showToast('Error sending salary.', 'error');
+                }
+            };
+
+            // ----- DELETE USER -----
+            window.deleteUser = function(userId) {
+                showPopup(`
+                    <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> Delete User</h3>
+                    <div style="text-align:center;padding:16px 0;color:var(--text-light);">
+                        <p style="font-size:1.1rem;margin-bottom:8px;">
+                            Are you sure you want to delete <strong>"${userId}"</strong>?
+                        </p>
+                        <p style="color:var(--danger);font-weight:600;font-size:0.95rem;">
+                            <i class="fas fa-exclamation-circle"></i> This action cannot be undone!
+                        </p>
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-danger" onclick="window.confirmDelete('${userId}')"><i class="fas fa-trash"></i> Delete</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            };
+
+            window.confirmDelete = function(userId) {
+                db.ref(`users/${userId}`).remove()
+                    .then(async () => {
+                        hidePopup();
+                        await loadAllUsers();
+                        showToast(`User "${userId}" deleted.`, 'success');
+                    })
+                    .catch(e => {
+                        console.error('Delete error:', e);
+                        showToast('Error deleting user.', 'error');
+                    });
+            };
+
+            // ----- CLEAR ALL DATA -----
+            document.getElementById('btnClearAllData').addEventListener('click', () => {
+                showPopup(`
+                    <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger);"></i> Clear All Data</h3>
+                    <div style="text-align:center;padding:16px 0;color:var(--text-light);">
+                        <p style="font-size:1.1rem;margin-bottom:8px;font-weight:600;">
+                            ⚠️ WARNING: This will delete <strong>ALL</strong> users and their data.
+                        </p>
+                        <p style="color:var(--danger);font-weight:600;font-size:0.95rem;">
+                            <i class="fas fa-exclamation-circle"></i> This action cannot be undone!
+                        </p>
+                    </div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label>Type <strong style="color:var(--danger);">"DELETE ALL"</strong> to confirm:</label>
+                        <input type="text" id="confirmDeleteAll" placeholder='Type "DELETE ALL"' />
+                    </div>
+                    <div class="popup-actions">
+                        <button class="btn-danger" onclick="window.confirmClearAll()"><i class="fas fa-trash-alt"></i> Delete All</button>
+                        <button class="btn-cancel" onclick="window.hidePopup()">Cancel</button>
+                    </div>
+                `);
+            });
+
+            window.confirmClearAll = function() {
+                const input = document.getElementById('confirmDeleteAll');
+                if (!input || input.value !== 'DELETE ALL') {
+                    showToast('Please type "DELETE ALL" to confirm.', 'warning');
+                    return;
+                }
+
+                db.ref('users').remove()
+                    .then(async () => {
+                        hidePopup();
+                        await loadAllUsers();
+                        showToast('All user data cleared.', 'info');
+                    })
+                    .catch(e => {
+                        console.error('Clear data error:', e);
+                        showToast('Error clearing data.', 'error');
+                    });
+            };
+
+            // ----- EXPOSE FUNCTIONS TO GLOBAL -----
+            window.hidePopup = hidePopup;
+            window.viewUser = window.viewUser;
+            window.editUser = window.editUser;
+            window.sendSalary = window.sendSalary;
+            window.deleteUser = window.deleteUser;
+            window.createUser = window.createUser;
+            window.saveEdit = window.saveEdit;
+            window.sendSalaryConfirm = window.sendSalaryConfirm;
+            window.resetUser = window.resetUser;
+            window.viewLogs = window.viewLogs;
+            window.confirmDelete = window.confirmDelete;
+            window.confirmClearAll = window.confirmClearAll;
+            window.filterUsers = window.filterUsers;
+            window.toggleSelectAll = window.toggleSelectAll;
+            window.editLoginTime = window.editLoginTime;
+            window.saveLoginTime = window.saveLoginTime;
+            window.saveGlobalHalfTime = window.saveGlobalHalfTime;
+
+            // ----- INIT -----
+            loadGlobalHalfTime();
+            loadAllUsers();
+            setInterval(loadAllUsers, 15000);
+
+        })();
+    </script>
+</body>
+</html>
